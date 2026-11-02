@@ -108,6 +108,7 @@
   --color-meadow-line: #a9cb8e;
   --color-meadow-flower: #fffdfa;
   --meadow-opacity: 1;
+  --night-friends-opacity: 0;
 
   /* 전체 탭 (라벤더) */
   --color-all: #d9d0f7;
@@ -210,6 +211,7 @@
 
   --color-all: #b9b0e8;
   --meadow-opacity: 0;
+  --night-friends-opacity: 1;
   --icon-filter: brightness(0.9) saturate(0.9);
 
   --color-switch-track: #343c6e;
@@ -1270,6 +1272,76 @@ kbd {
 /* 마지막 내용이 풀숲에 가리지 않도록 */
 .app {
   padding-bottom: 280px;
+}
+
+/* 풀숲 친구들
+   - 낮(.meadow 안): 토끼(오른쪽을 봄)는 왼쪽 끝, 다람쥐(왼쪽을 봄)는 오른쪽 끝 — 둘 다 가운데를 바라본다
+   - 밤(.night-friends): 고양이는 왼쪽, 노란 토끼는 오른쪽. 밤에는 풀숲이 없으므로 화면 바닥에 선다 */
+.night-friends {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 260px;
+  z-index: -1;
+  pointer-events: none;
+  opacity: var(--night-friends-opacity);
+  transition: opacity 0.6s ease;
+}
+
+.meadow-friend {
+  position: absolute;
+  bottom: var(--friend-bottom, 66px);
+  width: var(--friend-size, 180px);
+}
+
+.meadow-friend img {
+  display: block;
+  width: 100%;
+  height: auto;
+  user-select: none;
+}
+
+.meadow-friend--bunny {
+  --friend-size: 190px;
+  --friend-bottom: 70px;
+  left: calc(var(--meadow-start, 0px) + 3%);
+}
+
+.meadow-friend--squirrel {
+  --friend-size: 175px;
+  --friend-bottom: 68px;
+  right: 3%;
+}
+
+.meadow-friend--cat {
+  --friend-size: 230px;
+  --friend-bottom: 20px;
+  left: calc(var(--meadow-start, 0px) + 3%);
+}
+
+.meadow-friend--yellow {
+  --friend-size: 240px;
+  --friend-bottom: 20px;
+  right: 3%;
+}
+
+@media (max-width: 899px) {
+  .meadow-friend--bunny { --friend-size: 140px; }
+  .meadow-friend--squirrel { --friend-size: 130px; }
+  .meadow-friend--cat { --friend-size: 170px; }
+  .meadow-friend--yellow { --friend-size: 175px; }
+}
+
+@media (max-width: 480px) {
+  .meadow {
+    --friend-bottom: 40px;
+  }
+
+  .meadow-friend--bunny { --friend-size: 100px; --friend-bottom: 40px; left: 2%; }
+  .meadow-friend--squirrel { --friend-size: 96px; --friend-bottom: 40px; right: 2%; }
+  .meadow-friend--cat { --friend-size: 124px; --friend-bottom: 12px; left: 2%; }
+  .meadow-friend--yellow { --friend-size: 128px; --friend-bottom: 12px; right: 2%; }
 }
 
 /* ---------- 움직임 줄이기 ---------- */
