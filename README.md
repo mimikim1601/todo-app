@@ -4,6 +4,22 @@
 
 순수 HTML, CSS, JavaScript로 만든 개인용 할 일 관리 웹앱입니다. 프레임워크, 빌드 도구, 외부 라이브러리 없이 동작합니다.
 
+## 배포 주소
+
+- 기본 버전: https://mimikim1601.github.io/todo-app/
+- 데스크톱 전체 화면 버전: https://mimikim1601.github.io/todo-app/web_version/
+- 저장소: https://github.com/mimikim1601/todo-app
+
+## 수정 후 다시 배포하는 방법
+
+GitHub Pages가 main 브랜치를 자동으로 배포하므로, 고친 뒤 커밋하고 push만 하면 됩니다(반영까지 1~3분 정도 걸릴 수 있어요).
+
+```bash
+git add -A
+git commit -m "무엇을 고쳤는지 짧게"
+git push
+```
+
 ## 실행 방법
 
 `index.html`을 더블클릭해서 브라우저로 열면 됩니다. 설치나 서버, 인터넷 연결이 필요 없습니다.
