@@ -1,0 +1,1506 @@
+/* Created: 2026-11-02 15:47 */
+
+/* 데스크톱 전체 화면용 레이아웃
+   - 1024px 이상: 왼쪽 사이드바(헤더·진행률·필터) + 오른쪽 본문(입력·목록)
+   - 900~1023px: 사이드바 폭만 줄임
+   - 899px 이하: 위에서 아래로 쌓는 한 줄 레이아웃 */
+
+/* ============================================================
+   말랑하고 따뜻한 동화풍 테마
+   - 색상은 모두 :root 변수(역할 이름). 다크 모드는 이 변수만 덮어쓰면 된다.
+   - 글자/배경 조합은 모두 명도 대비 4.5:1 이상.
+   ============================================================ */
+
+@font-face {
+  font-family: "Jua";
+  src: url("fonts/Jua-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* 영문·숫자·기본 문장부호 전용 (Baloo 2 SemiBold를 라틴 범위만 잘라 18KB로 넣었다).
+   - Jua(굵기 1개)와 함께 쓰이므로 font-weight 400 자리에 등록한다.
+   - size-adjust: Baloo 2는 대문자 높이가 Jua의 영문보다 작아(0.615 vs 0.712em) 키워 맞춘다.
+   - ascent/descent/line-gap-override: Baloo 2의 세로 여백(1.6em)이 Jua(1.0em)보다 훨씬 커서
+     영문만 있는 줄이 아래로 처지거나 줄 높이가 흔들리지 않도록 Jua와 같게 맞춘다. */
+@font-face {
+  font-family: "Baloo 2";
+  src: url("fonts/Baloo2-SemiBold-Latin.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0020-007E, U+00A0-00FF, U+2013-2014, U+2018-201A, U+201C-201E, U+2022, U+2026;
+  size-adjust: 108%;
+  /* override 값에도 size-adjust가 곱해지므로 1.08로 나눠 둔다 → 실제로 Jua와 같은 0.8em / 0.2em */
+  ascent-override: 74.07%;
+  descent-override: 18.52%;
+  line-gap-override: 0%;
+}
+
+/* 할 일 내용용 영문 (Baloo 2 Regular, 라틴 범위만 18KB).
+   내용의 한글은 읽기 편한 시스템 고딕(보통 굵기)이므로, 굵기를 맞춰 Regular를 따로 쓴다.
+   - size-adjust 110%: 소문자 높이를 시스템 고딕과 맞춘다(Baloo 2는 그대로 쓰면 작아 보인다).
+   - override: 시스템 고딕(Mac 기준 0.97em / 0.21em)과 같은 줄 위치가 되도록 1.1로 나눈 값. */
+@font-face {
+  font-family: "Baloo 2 Text";
+  src: url("fonts/Baloo2-Regular-Latin.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0020-007E, U+00A0-00FF, U+2013-2014, U+2018-201A, U+201C-201E, U+2022, U+2026;
+  size-adjust: 110%;
+  ascent-override: 88.18%;
+  descent-override: 19.09%;
+  line-gap-override: 0%;
+}
+
+:root {
+  color-scheme: light;
+
+  /* 바탕 */
+  --color-bg: #fff8f0;              /* 크림색 페이지 배경 */
+  --color-surface: #fffdfa;         /* 카드 */
+  --color-surface-soft: #fff1e6;    /* 탭 바탕, 호버 */
+
+  /* 글자 */
+  --color-text: #5b4b4b;            /* 본문 (bg 대비 7.8:1) */
+  --color-text-muted: #7a6461;      /* 보조 글자 (surface-soft 대비 5.0:1) */
+  --color-text-on-accent: #5b4b4b;  /* 분홍 버튼 위 글자 (5.5:1) */
+  --color-text-on-category: #4a3b3b;/* 카테고리 배지 위 글자 (7.1:1 이상) */
+
+  /* 선 · 그림자 */
+  --color-border: #f2dfd3;
+  --color-border-strong: #e8cbbb;   /* 입력창 테두리 */
+  --color-shadow: rgba(160, 112, 96, 0.12);
+
+  /* 포인트 */
+  --color-accent: #f9c6d0;          /* 연분홍: 주요 버튼, 선택된 탭 */
+  --color-accent-hover: #fbd6dd;
+  --color-accent-strong: #c9607a;   /* 포커스 링, 체크박스 (글자 아님, 3:1 이상) */
+  --color-on-accent-strong: #ffffff;/* 체크 표시 */
+
+  /* 카테고리 (진행 막대·배지 공통) */
+  --color-work: #bfe3f5;            /* 하늘색 */
+  --color-personal: #f9c6d0;        /* 연분홍 */
+  --color-study: #ffe8a3;           /* 버터 노랑 */
+  --color-extra1: #ffd6b8;          /* 새 카테고리 1 (살구) */
+  --color-extra2: #cfe5c4;          /* 새 카테고리 2 (세이지) */
+
+  /* 진행 막대 */
+  --color-progress-track: #f3e4da;
+  --color-progress-fill: #f4a9ba;   /* 전체 진행률 */
+  --color-progress-edge: rgba(91, 75, 75, 0.12); /* 파스텔 막대 윤곽 */
+
+  /* 상태 */
+  --color-danger: #b4233c;          /* 빈 값 경고 테두리, 삭제 호버 글자 (6.1:1) */
+  --color-danger-soft: rgba(180, 35, 60, 0.15);
+  --color-banner-bg: #ffe8a3;
+  --color-banner-border: #f5d37a;
+  --color-banner-text: #5b4b4b;
+  --color-toast-bg: #5b4b4b;
+  --color-toast-text: #fff8f0;
+
+  /* 키보드 선택 항목 테두리 (배경 대비 5.3:1) */
+  --color-selected: #6d55c7;
+  /* 단축키 도움말 */
+  --color-dialog-bg: #fffdfa;
+  --color-backdrop: rgba(91, 75, 75, 0.35);
+
+  /* 낮 풀숲 (보조 글자가 겹쳐도 4.5:1 이상인 옅은 연두) */
+  --color-meadow-back: #ecf5e0;
+  --color-meadow-front: #e0efcf;
+  --color-meadow-line: #a9cb8e;
+  --color-meadow-flower: #fffdfa;
+  --meadow-opacity: 1;
+
+  /* 전체 탭 (라벤더) */
+  --color-all: #d9d0f7;
+  /* PNG 아이콘 (밤에는 살짝 차분하게) */
+  --icon-filter: none;
+
+  /* 진행 막대 빛 (낮에는 없음) */
+  --color-progress-glow: transparent;
+
+  /* 낮/밤 스위치 */
+  --color-switch-track: #fff0c7;
+  --color-sun: #f6b93b;
+  --color-sun-glow: rgba(246, 185, 59, 0.35);
+  --switch-thumb-bg: var(--color-sun);
+  --switch-thumb-shadow: 0 0 0 3px var(--color-sun-glow);
+  --switch-thumb-x: 0px;
+
+  /* 밤하늘 장식 (낮에는 투명) */
+  --color-sky-top: #1b2245;
+  --color-sky-mid: #2e3a6b;
+  --color-sky-bottom: #4a4e8c;
+  --color-star: #fff7d6;
+  --color-moon: #fff1c1;
+  --color-moon-glow: rgba(255, 241, 193, 0.45);
+  --sky-opacity: 0;
+  --twinkle-state: paused;
+
+  /* 낮 ↔ 밤 색 전환 */
+  --theme-transition: background-color 0.6s ease, color 0.6s ease, border-color 0.6s ease,
+    box-shadow 0.6s ease;
+
+  /* 폰트 */
+  /* 영문·숫자는 Baloo 2, 한글은 Jua, 둘 다 없으면 대체 폰트 */
+  --font-round: "Baloo 2", "Jua", "NanumSquareRound", "Nanum Square Round", "Apple SD Gothic Neo",
+    "Malgun Gothic", sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic",
+    "Noto Sans KR", "Segoe UI", sans-serif;
+  /* 할 일 내용: 영문·숫자는 Baloo 2 Regular, 한글은 시스템 고딕 */
+  --font-content: "Baloo 2 Text", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+    "Malgun Gothic", "Noto Sans KR", "Segoe UI", sans-serif;
+
+  /* 모양 */
+  --radius: 20px;
+  --radius-sm: 16px;
+  --radius-pill: 999px;
+  --border-width: 2px;
+  --shadow: 0 8px 28px var(--color-shadow);
+  --gap: 18px;
+  --sidebar-width: 320px;
+}
+
+/* ============================================================
+   밤하늘 모드: 위의 변수만 덮어쓴다 (컴포넌트 색 하드코딩 없음)
+   - 글자 대비는 반투명 카드가 가장 밝은 하늘(#4A4E8C) 위에 있을 때도 4.5:1 이상
+   ============================================================ */
+
+[data-theme="night"] {
+  color-scheme: dark;
+
+  --color-bg: #1b2245;
+  --color-surface: rgba(30, 38, 78, 0.82);       /* 반투명 짙은 남색 카드 */
+  --color-surface-soft: rgba(52, 60, 110, 0.78);
+
+  --color-text: #fff3e0;                          /* 크림색 (카드 위 11.9:1 이상) */
+  --color-text-muted: #cbc3e8;                    /* 연보라 회색 (최저 4.5:1) */
+  --color-text-on-accent: #1f2347;                /* 8.0:1 */
+  --color-text-on-category: #1f2347;              /* 8.0:1 이상 */
+
+  --color-border: rgba(190, 178, 245, 0.35);      /* 연보라 */
+  --color-border-strong: #8f86c9;
+  --color-shadow: rgba(8, 10, 30, 0.45);
+
+  --color-accent: #e3afc2;
+  --color-accent-hover: #ebc1d0;
+  --color-accent-strong: #f0c3d4;
+  --color-on-accent-strong: #1b2245;
+
+  /* 낮보다 살짝 차분한 파스텔 */
+  --color-work: #a9cde3;
+  --color-personal: #e3afc2;
+  --color-study: #ead596;
+  --color-extra1: #e8bfa3;
+  --color-extra2: #abc9a6;
+
+  --color-progress-track: rgba(255, 255, 255, 0.1);
+  --color-progress-fill: #e3afc2;
+  --color-progress-edge: rgba(255, 255, 255, 0.22);
+  --color-progress-glow: rgba(227, 175, 194, 0.45);
+
+  --color-danger: #ffa3b5;                        /* 7.0:1 */
+  --color-danger-soft: rgba(255, 163, 181, 0.22);
+  --color-banner-bg: #3a3f72;
+  --color-banner-border: #ead596;
+  --color-banner-text: #fff3e0;
+  --color-toast-bg: #fff3e0;
+  --color-toast-text: #1b2245;
+
+  --color-selected: #ffe08a;                      /* 버터빛 (5.9:1 이상) */
+  --color-dialog-bg: #1e264e;                     /* 도움말은 불투명하게 (글자 13.3:1) */
+  --color-backdrop: rgba(8, 10, 30, 0.6);
+
+  --color-all: #b9b0e8;
+  --meadow-opacity: 0;
+  --icon-filter: brightness(0.9) saturate(0.9);
+
+  --color-switch-track: #343c6e;
+  --switch-thumb-bg: transparent;
+  --switch-thumb-shadow: inset -7px -3px 0 0 var(--color-moon);  /* 초승달 */
+  --switch-thumb-x: 28px;
+
+  --sky-opacity: 1;
+  --twinkle-state: running;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+::placeholder {
+  color: var(--color-text-muted);
+  opacity: 1;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* display 지정이 hidden 속성을 덮어쓰지 않도록 */
+[hidden] {
+  display: none !important;
+}
+
+/* 낮 ↔ 밤 색이 0.6초 동안 부드럽게 바뀌도록 (개별 transition이 있는 요소는 아래에서 따로 지정) */
+*,
+*::before,
+*::after {
+  transition: var(--theme-transition);
+}
+
+/* ---------- 밤하늘 장식 레이어 ---------- */
+
+.sky {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  background: linear-gradient(180deg, var(--color-sky-top) 0%, var(--color-sky-mid) 55%,
+    var(--color-sky-bottom) 100%);
+  opacity: var(--sky-opacity);
+  transition: opacity 0.6s ease;
+}
+
+/* 2px 점 하나에 box-shadow로 별을 흩뿌린다 */
+.stars {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  box-shadow:
+    32.7vw 15.5vh 0 0.5px var(--color-star),
+    5.7vw 79.8vh 0 0 var(--color-star),
+    36.8vw 6.6vh 0 0.5px var(--color-star),
+    22.0vw 9.3vh 0 0 var(--color-star),
+    7.8vw 9.7vh 0 0 var(--color-star),
+    6.8vw 55.3vh 0 0 var(--color-star),
+    62.8vw 57.0vh 0 0 var(--color-star),
+    57.6vw 39.1vh 0 0 var(--color-star),
+    5.6vw 83.4vh 0 0 var(--color-star),
+    42.1vw 52.9vh 0 0.5px var(--color-star),
+    31.2vw 79.3vh 0 0 var(--color-star),
+    11.1vw 55.8vh 0 0 var(--color-star),
+    37.5vw 53.6vh 0 0 var(--color-star),
+    56.3vw 60.4vh 0 0 var(--color-star),
+    67.7vw 42.0vh 0 0 var(--color-star),
+    46.6vw 89.7vh 0 0 var(--color-star),
+    30.4vw 77.3vh 0 0.5px var(--color-star),
+    77.4vw 8.9vh 0 0 var(--color-star),
+    52.5vw 85.0vh 0 0.5px var(--color-star),
+    45.0vw 59.5vh 0 0 var(--color-star),
+    12.6vw 41.1vh 0 0 var(--color-star),
+    15.9vw 47.9vh 0 0 var(--color-star),
+    95.3vw 8.5vh 0 0.5px var(--color-star),
+    57.2vw 85.0vh 0 0 var(--color-star),
+    34.3vw 34.6vh 0 0 var(--color-star),
+    57.8vw 44.8vh 0 0 var(--color-star),
+    93.6vw 46.5vh 0 0.5px var(--color-star),
+    7.4vw 71.2vh 0 0 var(--color-star),
+    64.4vw 96.3vh 0 0 var(--color-star),
+    28.9vw 38.0vh 0 0.5px var(--color-star),
+    35.0vw 91.3vh 0 0 var(--color-star),
+    17.5vw 12.2vh 0 0 var(--color-star),
+    22.4vw 28.6vh 0 0.5px var(--color-star),
+    25.3vw 38.5vh 0 0 var(--color-star),
+    8.9vw 44.1vh 0 0.5px var(--color-star),
+    28.2vw 14.1vh 0 0 var(--color-star),
+    85.7vw 27.7vh 0 0 var(--color-star),
+    97.7vw 66.5vh 0 0 var(--color-star),
+    94.9vw 15.5vh 0 0 var(--color-star),
+    15.8vw 64.2vh 0 0 var(--color-star),
+    48.5vw 57.6vh 0 0 var(--color-star),
+    28.6vw 15.0vh 0 0.5px var(--color-star),
+    37.2vw 55.4vh 0 0 var(--color-star),
+    68.7vw 50.5vh 0 0.5px var(--color-star),
+    65.2vw 72.0vh 0 0 var(--color-star),
+    89.2vw 75.9vh 0 0.5px var(--color-star);
+}
+
+.stars-twinkle {
+  box-shadow:
+    79.2vw 38.7vh 0 1px var(--color-star),
+    39.6vw 47.2vh 0 1px var(--color-star),
+    7.1vw 7.5vh 0 0.5px var(--color-star),
+    44.2vw 11.6vh 0 0.5px var(--color-star),
+    11.0vw 55.4vh 0 0.5px var(--color-star),
+    94.0vw 59.9vh 0 0.5px var(--color-star),
+    86.7vw 60.0vh 0 0.5px var(--color-star),
+    63.2vw 92.7vh 0 1px var(--color-star),
+    47.5vw 12.1vh 0 1px var(--color-star),
+    98.3vw 45.7vh 0 1px var(--color-star);
+  animation: twinkle 3.2s ease-in-out infinite alternate;
+  animation-play-state: var(--twinkle-state);
+}
+
+.stars-twinkle-late {
+  box-shadow:
+    31.6vw 14.8vh 0 1px var(--color-star),
+    73.6vw 46.9vh 0 0.5px var(--color-star),
+    51.6vw 20.7vh 0 1px var(--color-star),
+    15.4vw 53.1vh 0 0.5px var(--color-star),
+    75.3vw 29.6vh 0 0.5px var(--color-star),
+    69.2vw 26.1vh 0 1px var(--color-star),
+    90.0vw 35.1vh 0 0.5px var(--color-star),
+    53.2vw 75.8vh 0 1px var(--color-star),
+    63.4vw 59.9vh 0 0.5px var(--color-star);
+  animation-duration: 4.6s;
+  animation-delay: -2s;
+}
+
+@keyframes twinkle {
+  from { opacity: 1; }
+  to { opacity: 0.2; }
+}
+
+/* 초승달: 투명한 원의 그림자만 보이게 해서 깎인 모양을 만든다 */
+.moon {
+  position: absolute;
+  top: 6px;
+  right: 22px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  box-shadow: 11px 6px 0 0 var(--color-moon);
+  filter: drop-shadow(0 0 14px var(--color-moon-glow));
+}
+
+/* ---------- 낮/밤 스위치 ---------- */
+
+.theme-switch {
+  grid-area: switch;
+  position: relative;
+  flex: 0 0 auto;
+  width: 60px;
+  height: 32px;
+  padding: 0;
+  background: var(--color-switch-track);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: var(--theme-transition), transform 0.15s ease;
+}
+
+.theme-switch:hover {
+  transform: scale(1.06);
+}
+
+/* 낮에는 해, 밤에는 초승달 */
+.theme-switch-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--switch-thumb-bg);
+  box-shadow: var(--switch-thumb-shadow);
+  transform: translateX(var(--switch-thumb-x));
+  transition: transform 0.3s ease, background-color 0.6s ease, box-shadow 0.6s ease;
+}
+
+
+/* 둥근 폰트를 쓰는 곳 (Jua는 굵기가 하나뿐이라 가짜 굵게를 막는다) */
+.app-title,
+.section-title,
+.progress-text,
+.cat-label,
+.btn,
+.filter-btn,
+.badge,
+.todo-select,
+.todo-edit-select,
+.todo-empty,
+.nav-title,
+.banner,
+.toast {
+  font-family: var(--font-round);
+  font-weight: 400;
+}
+
+/* 할 일 내용 (목록·입력창·수정 입력창이 같은 글꼴로 보이도록) */
+.todo-text,
+.todo-input,
+.todo-edit-input {
+  font-family: var(--font-content);
+}
+
+/* ---------- 전체 레이아웃 ---------- */
+
+.app {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding: 40px 28px;
+  background: var(--color-surface);
+  border-right: var(--border-width) solid var(--color-border);
+}
+
+.main {
+  padding: 40px 56px 64px;
+}
+
+.main-inner {
+  max-width: 1040px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.card {
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 22px;
+}
+
+/* ---------- 사이드바: 헤더 ---------- */
+
+.app-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "title switch"
+    "date  date";
+  align-items: center;
+  gap: 4px 12px;
+}
+
+.app-title {
+  grid-area: title;
+}
+
+.today {
+  grid-area: date;
+}
+
+.app-title {
+  margin: 0;
+  font-size: 2.1rem;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.today {
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+}
+
+/* ---------- 사이드바: 진행률 ---------- */
+
+.progress-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.section-title {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.progress-text {
+  margin: 0;
+  font-size: 1.1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.bar {
+  width: 100%;
+  background: var(--color-progress-track);
+  border-radius: var(--radius-pill);
+  box-shadow: 0 0 12px var(--color-progress-glow);
+  overflow: hidden;
+}
+
+.bar-total {
+  height: 18px;
+}
+
+.bar-small {
+  height: 12px;
+}
+
+.bar-fill {
+  height: 100%;
+  background: var(--color-progress-fill);
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 2px var(--color-progress-edge);
+  transition: width 0.4s ease, var(--theme-transition);
+}
+
+.category-progress {
+  list-style: none;
+  margin: 24px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cat-label {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px;
+  margin-bottom: 6px;
+  font-size: 0.95rem;
+}
+
+.cat-count {
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+
+/* ---------- 사이드바: 필터 ---------- */
+
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.nav-title {
+  margin: 0 0 4px;
+  padding: 0 14px;
+  color: var(--color-text-muted);
+  font-family: var(--font-round);
+  font-size: 0.95rem;
+}
+
+.filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 1.05rem;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.15s ease, background-color 0.15s ease, color 0.15s ease,
+    border-color 0.6s ease, box-shadow 0.6s ease;
+}
+
+/* 필터 앞 색 동그라미 */
+.filter-btn::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-progress-fill);
+  box-shadow: inset 0 0 0 2px var(--color-progress-edge);
+}
+
+/* "전체"는 세 카테고리 색을 나눠 담은 동그라미 */
+.filter-btn[data-filter="all"]::before {
+  background: conic-gradient(var(--color-work) 0 33%, var(--color-personal) 0 66%, var(--color-study) 0);
+}
+.filter-btn[data-filter="work"]::before { background: var(--color-work); }
+.filter-btn[data-filter="personal"]::before { background: var(--color-personal); }
+.filter-btn[data-filter="study"]::before { background: var(--color-study); }
+
+.filter-btn:hover {
+  background: var(--color-surface-soft);
+  color: var(--color-text);
+  transform: scale(1.03);
+}
+
+.filter-btn.is-active {
+  background: var(--color-accent);
+  color: var(--color-text-on-accent);
+  box-shadow: 0 4px 12px var(--color-shadow);
+}
+
+/* 카테고리 탭은 선택되면 그 카테고리 색으로 (배지·진행 막대와 같은 색, 글자 대비 7:1 이상) */
+/* 전체 탭은 카테고리 색과 겹치지 않는 라벤더 (글자 대비 7:1 이상) */
+.filter-btn.is-active[data-filter="all"] {
+  background: var(--color-all);
+  color: var(--color-text-on-category);
+}
+
+
+
+
+/* ---------- 3. 입력 ---------- */
+
+.todo-form {
+  display: flex;
+  gap: 10px;
+}
+
+.todo-input,
+.todo-select {
+  height: 48px;
+  padding: 0 16px;
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+}
+
+.todo-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.todo-select {
+  flex: 0 0 auto;
+  cursor: pointer;
+}
+
+/* 빈 값 입력 강조 */
+.todo-input.is-invalid {
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 4px var(--color-danger-soft);
+}
+
+/* ---------- 버튼 공통 ---------- */
+
+.btn {
+  border: var(--border-width) solid transparent;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform 0.15s ease, background-color 0.15s ease, color 0.15s ease,
+    border-color 0.6s ease, box-shadow 0.6s ease;
+}
+
+.btn:hover {
+  transform: scale(1.05);
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn-primary {
+  flex: 0 0 auto;
+  height: 48px;
+  padding: 0 24px;
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-text-on-accent);
+  font-size: 1.05rem;
+}
+
+.btn-primary:hover {
+  background: var(--color-accent-hover);
+}
+
+.btn-ghost {
+  padding: 4px 12px;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.btn-ghost:hover {
+  background: var(--color-surface-soft);
+  color: var(--color-text);
+}
+
+.btn-delete:hover {
+  color: var(--color-danger);
+}
+
+/* ---------- 5. 할 일 목록 ---------- */
+
+.todo-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.todo-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 14px 14px 18px;
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+/* 체크박스: 둥근 말랑 상자 */
+.todo-check {
+  appearance: none;
+  flex: 0 0 auto;
+  display: grid;
+  place-content: center;
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: 9px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.todo-check::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  background: var(--color-on-accent-strong);
+  clip-path: polygon(14% 52%, 0 66%, 38% 100%, 100% 26%, 86% 12%, 38% 72%);
+  transform: scale(0);
+  transition: transform 0.15s ease;
+}
+
+.todo-check:hover {
+  border-color: var(--color-accent-strong);
+}
+
+.todo-check:checked {
+  background: var(--color-accent-strong);
+  border-color: var(--color-accent-strong);
+}
+
+.todo-check:checked::before {
+  transform: scale(1);
+}
+
+/* 방금 완료한 체크박스는 render 후 포커스를 받으므로 그때만 통통 튄다 */
+.todo-check:checked:focus {
+  animation: check-pop 0.28s ease-out;
+}
+
+@keyframes check-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.25); }
+  70% { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+
+.todo-text {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  cursor: text;
+}
+
+.badge {
+  flex: 0 0 auto;
+  padding: 3px 12px;
+  border-radius: var(--radius-pill);
+  color: var(--color-text-on-category);
+  font-size: 0.85rem;
+}
+
+
+.todo-actions {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 2px;
+}
+
+/* 완료 상태 */
+.todo-item.is-done {
+  background: var(--color-bg);
+  box-shadow: none;
+}
+
+.todo-item.is-done .todo-text {
+  color: var(--color-text-muted);
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+
+/* 편집 모드 */
+.todo-item.is-editing {
+  border-color: var(--color-accent);
+}
+
+.todo-edit-input,
+.todo-edit-select {
+  height: 40px;
+  padding: 0 14px;
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+}
+
+.todo-edit-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.todo-edit-select {
+  flex: 0 0 auto;
+  cursor: pointer;
+}
+
+/* 빈 목록 안내 */
+.todo-empty {
+  padding: 72px 16px;
+  border: var(--border-width) dashed var(--color-border-strong);
+  border-radius: var(--radius);
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 1.1rem;
+}
+
+/* ---------- 포커스 표시 ---------- */
+
+.todo-input:focus,
+.todo-select:focus,
+.todo-edit-input:focus,
+.todo-edit-select:focus,
+.btn:focus-visible,
+.filter-btn:focus-visible,
+.theme-switch:focus-visible,
+.todo-check:focus-visible {
+  outline: 3px solid var(--color-accent-strong);
+  outline-offset: 2px;
+}
+
+.todo-input.is-invalid:focus {
+  outline-color: var(--color-danger);
+}
+
+/* ---------- 안내 ---------- */
+
+.banner {
+  margin: 0;
+  padding: 12px 18px;
+  background: var(--color-banner-bg);
+  border: var(--border-width) solid var(--color-banner-border);
+  border-radius: var(--radius);
+  color: var(--color-banner-text);
+}
+
+/* 화면 아래 안내들을 위아래로 쌓는다 */
+.toast-stack {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100% - 32px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.toast {
+  padding: 10px 20px;
+  background: var(--color-toast-bg);
+  color: var(--color-toast-text);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow);
+  pointer-events: auto;
+}
+
+/* 삭제 되돌리기 안내 */
+.toast-undo {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 10px;
+  padding: 8px 10px 8px 20px;
+}
+
+.toast-button {
+  padding: 4px 14px;
+  background: transparent;
+  border: var(--border-width) solid var(--color-toast-text);
+  border-radius: var(--radius-pill);
+  color: var(--color-toast-text);
+  font-family: var(--font-round);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.toast-button:hover {
+  transform: scale(1.05);
+}
+
+.toast-button:focus-visible {
+  outline: 3px solid var(--color-toast-text);
+  outline-offset: 2px;
+}
+
+/* ---------- 키보드 선택 항목 ---------- */
+
+.todo-item.is-selected {
+  outline: 3px solid var(--color-selected);
+  outline-offset: 3px;
+}
+
+/* ---------- 단축키 안내 · 도움말 ---------- */
+
+kbd {
+  display: inline-block;
+  min-width: 1.7em;
+  padding: 0 6px;
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-bottom-width: 3px;
+  border-radius: 8px;
+  color: var(--color-text);
+  font-family: var(--font-round);
+  font-size: 0.85em;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.shortcut-hint {
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 4px 10px;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-pill);
+  color: var(--color-text-muted);
+  font-family: var(--font-round);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.shortcut-hint:hover {
+  color: var(--color-text);
+}
+
+.shortcut-hint:focus-visible {
+  outline: 3px solid var(--color-accent-strong);
+  outline-offset: 2px;
+}
+
+/* 키보드가 없는 터치 기기에서는 숨긴다 */
+@media (hover: none) and (pointer: coarse) {
+  .shortcut-hint {
+    display: none;
+  }
+}
+
+.help-dialog {
+  width: min(560px, calc(100% - 32px));
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+  padding: 22px 24px 24px;
+  background: var(--color-dialog-bg);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  color: var(--color-text);
+}
+
+.help-dialog::backdrop {
+  background: var(--color-backdrop);
+}
+
+.help-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.help-title {
+  margin: 0;
+  font-family: var(--font-round);
+  font-size: 1.4rem;
+  font-weight: 400;
+}
+
+.shortcut-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.shortcut-table th {
+  padding: 6px 8px;
+  border-bottom: var(--border-width) solid var(--color-border-strong);
+  color: var(--color-text-muted);
+  font-family: var(--font-round);
+  font-weight: 400;
+  text-align: left;
+}
+
+.shortcut-table td {
+  padding: 8px;
+  border-bottom: var(--border-width) solid var(--color-border);
+  vertical-align: middle;
+}
+
+.shortcut-table td:first-child {
+  white-space: nowrap;
+}
+
+.key-note {
+  color: var(--color-text-muted);
+  font-size: 0.85em;
+}
+
+/* ---------- 아이콘 (images/ 폴더의 PNG) ---------- */
+
+.icon {
+  flex: 0 0 auto;
+  object-fit: contain;
+  vertical-align: middle;
+  filter: var(--icon-filter);
+  user-select: none;
+}
+
+.app-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.title-icon {
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
+.cat-label > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badge:has(.icon) {
+  padding-left: 6px;
+}
+
+/* 완료하면 0.4초 통통 */
+.icon.is-bouncing {
+  animation: icon-bounce 0.4s ease-out;
+}
+
+@keyframes icon-bounce {
+  0% { transform: translateY(0) scale(1); }
+  30% { transform: translateY(-30%) scale(1.06, 0.96); }
+  55% { transform: translateY(0) scale(1.1, 0.9); }
+  75% { transform: translateY(-8%) scale(1); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+/* 필터 탭: 아이콘이 있는 탭은 색 동그라미 대신 아이콘을 보여 준다 */
+.filter-btn:has(.icon)::before {
+  display: none;
+}
+
+/* 사이드바 헤더: 1줄 아이콘 + 제목, 2줄 날짜 + 스위치 */
+.app-header {
+  grid-template-areas:
+    "title title"
+    "date  switch";
+}
+
+/* ---------- 카테고리 편집 · 풀숲 ---------- */
+
+/* 카테고리 탭·배지·진행 막대 색: JS가 각 요소에 --cat-color(var(--color-<slot>))를 넣어 준다 */
+.cat-item .bar-fill {
+  background: var(--cat-color, var(--color-progress-fill));
+}
+
+.badge {
+  background: var(--cat-color, var(--color-surface-soft));
+}
+
+.filter-btn.is-active[data-filter]:not([data-filter="all"]) {
+  background: var(--cat-color);
+  color: var(--color-text-on-category);
+}
+
+.cat-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.filter-edit {
+  border: var(--border-width) dashed var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: var(--font-round);
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+}
+
+.filter-edit:hover {
+  background: var(--color-surface);
+  color: var(--color-text);
+  transform: scale(1.03);
+}
+
+.filter-edit:focus-visible,
+.category-name-input:focus {
+  outline: 3px solid var(--color-accent-strong);
+  outline-offset: 2px;
+}
+
+/* 카테고리 편집 화면 */
+.category-note {
+  margin: 0 0 12px;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.category-list {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.category-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 8px 8px 12px;
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-left: 8px solid var(--cat-color);
+  border-radius: var(--radius-sm);
+}
+
+.category-name-input {
+  flex: 1;
+  min-width: 0;
+  height: 38px;
+  padding: 0 12px;
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-family: var(--font-round);
+}
+
+.category-count {
+  flex: 0 0 auto;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+.category-delete:hover {
+  color: var(--color-danger);
+}
+
+.category-add {
+  display: flex;
+  gap: 8px;
+}
+
+.category-add .todo-input:disabled,
+.category-add .btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.category-error {
+  margin: 10px 0 0;
+  color: var(--color-danger);
+  font-size: 0.9rem;
+}
+
+/* 낮 풀숲: 화면 아래에 깔리는 장식 (밤에는 --meadow-opacity가 0) */
+.meadow {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 170px;
+  z-index: -1;
+  pointer-events: none;
+  opacity: var(--meadow-opacity);
+  transition: opacity 0.6s ease;
+}
+
+.meadow-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+@media (max-width: 480px) {
+  .meadow {
+    height: 120px;
+  }
+
+  .category-row {
+    flex-wrap: wrap;
+  }
+
+  .category-name-input {
+    flex-basis: calc(100% - 40px);
+  }
+
+  .category-count {
+    margin-left: 38px;
+  }
+
+  .category-delete {
+    margin-left: auto;
+  }
+}
+
+.filter-edit {
+  width: 100%;
+  margin-top: 6px;
+  padding: 9px 14px;
+  text-align: left;
+}
+
+/* 마지막 내용이 풀숲에 가리지 않도록 */
+.main-inner {
+  padding-bottom: 150px;
+}
+
+@media (max-width: 899px) {
+  /* 쌓는 레이아웃: 탭이 넘치면 두 줄로 */
+  .filters {
+    flex-wrap: wrap;
+    border-radius: 28px;
+  }
+
+  .filter-btn {
+    flex: 1 1 auto;
+    padding: 8px 12px;
+    white-space: nowrap;
+  }
+
+  .filter-edit {
+    flex: 0 0 auto;
+    width: auto;
+    margin-top: 0;
+    padding: 6px 14px;
+  }
+}
+
+/* ---------- 움직임 줄이기 ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .btn:hover,
+  .btn:active,
+  .filter-btn:hover,
+  .theme-switch:hover,
+  .toast-button:hover {
+    transform: none;
+  }
+}
+
+/* ---------- 좁은 데스크톱 (900~1023px) ---------- */
+
+@media (max-width: 1023px) {
+  :root {
+    --sidebar-width: 260px;
+  }
+
+  .sidebar {
+    padding: 32px 20px;
+  }
+
+  .main {
+    padding: 32px 28px 48px;
+  }
+}
+
+/* ---------- 태블릿·모바일 (899px 이하): 위에서 아래로 쌓기 ---------- */
+
+@media (max-width: 899px) {
+  .app {
+    display: block;
+  }
+
+  .sidebar {
+    position: static;
+    height: auto;
+    overflow: visible;
+    gap: 20px;
+    padding: 52px 16px 20px;
+    background: transparent;
+    border-right: 0;
+    border-bottom: var(--border-width) solid var(--color-border);
+  }
+
+  .app-header {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-areas: "title date switch";
+    gap: 4px 14px;
+  }
+
+  .app-title {
+    font-size: 1.8rem;
+  }
+
+  .category-progress {
+    margin-top: 16px;
+    gap: 10px;
+  }
+
+  /* 필터: 가로 알약 탭 */
+  .filters {
+    flex-direction: row;
+    padding: 6px;
+    background: var(--color-surface-soft);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-pill);
+  }
+
+  .nav-title {
+    display: none;
+  }
+
+  .filter-btn {
+    flex: 1;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 0;
+    font-size: 1rem;
+  }
+
+  .filter-btn::before {
+    width: 10px;
+    height: 10px;
+  }
+
+  .main {
+    padding: 20px 16px 48px;
+  }
+
+  .main-inner {
+    gap: 16px;
+  }
+
+  .card {
+    padding: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  /* 헤더: 1줄 제목 + 스위치, 2줄 날짜 */
+  .app-header {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "title switch"
+      "date  date";
+  }
+
+  /* 입력 영역: 1줄 입력창, 2줄 카테고리 + 추가 버튼 */
+  .todo-form {
+    flex-wrap: wrap;
+  }
+
+  .todo-input {
+    flex: 1 0 100%;
+  }
+
+  .todo-select {
+    flex: 1;
+  }
+
+  /* 할 일 항목: 1줄 체크박스 + 내용, 2줄 배지 + 버튼 */
+  .todo-item {
+    flex-wrap: wrap;
+    gap: 8px 10px;
+  }
+
+  .todo-text {
+    flex-basis: calc(100% - 34px);
+  }
+
+  .badge {
+    margin-left: 34px;
+  }
+
+  .todo-actions {
+    margin-left: auto;
+  }
+
+  /* 편집 모드: 1줄 입력창, 2줄 카테고리 */
+  .todo-edit-input {
+    flex: 1 0 100%;
+  }
+
+  .todo-edit-select {
+    flex: 1;
+  }
+
+  /* 필터 점은 좁은 폭에서 숨긴다 */
+  .filter-btn::before {
+    display: none;
+  }
+}

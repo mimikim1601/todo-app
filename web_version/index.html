@@ -1,0 +1,145 @@
+<!-- Created: 2026-11-02 15:47 -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>오늘의 할 일</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- 새로고침 때 낮 화면이 번쩍이지 않도록 저장된 테마를 먼저 적용 -->
+  <script>
+    try {
+      if (JSON.parse(localStorage.getItem("todo-app:v1")).settings.theme === "night") {
+        document.documentElement.dataset.theme = "night";
+      }
+    } catch (e) {}
+  </script>
+</head>
+<body>
+  <!-- 밤하늘 장식 (화면 뒤, 클릭·스크린 리더 대상 아님) -->
+  <div class="sky" aria-hidden="true">
+    <span class="stars"></span>
+    <span class="stars stars-twinkle"></span>
+    <span class="stars stars-twinkle stars-twinkle-late"></span>
+    <span class="moon"></span>
+  </div>
+
+  <!-- 낮 풀숲 장식 (화면 아래, 클릭·스크린 리더 대상 아님 · 밤에는 투명) -->
+  <div class="meadow" aria-hidden="true">
+    <svg class="meadow-art" viewBox="0 0 1440 170" preserveAspectRatio="xMidYMax slice" focusable="false">
+      <path d="M0 112 C180 76 360 100 540 88 C720 74 900 104 1080 86 C1260 70 1380 94 1440 88 V180 H0 Z" style="fill:var(--color-meadow-back)"/>
+      <path d="M-40 150 Q9 109 58 150 Q118 106 177 150 Q226 108 275 150 Q328 98 382 150 Q422 117 463 150 Q514 107 565 150 Q620 111 675 150 Q735 97 795 150 Q833 106 871 150 Q916 96 960 150 Q998 109 1035 150 Q1092 112 1149 150 Q1185 111 1221 150 Q1268 106 1316 150 Q1372 115 1427 150 Q1482 112 1536 150 V180 H-40 Z" style="fill:var(--color-meadow-front);stroke:var(--color-meadow-line);stroke-width:3;stroke-linejoin:round"/>
+      <path d="M332 150 q-3 -11 -9 -17 M332 150 q0 -13 2 -20 M332 150 q4 -9 10 -14 M1092 152 q-3 -11 -9 -17 M1092 152 q0 -13 2 -20 M1092 152 q4 -9 10 -14 M131 151 q-3 -11 -9 -17 M131 151 q0 -13 2 -20 M131 151 q4 -9 10 -14 M399 157 q-3 -11 -9 -17 M399 157 q0 -13 2 -20 M399 157 q4 -9 10 -14 M1238 150 q-3 -11 -9 -17 M1238 150 q0 -13 2 -20 M1238 150 q4 -9 10 -14 M960 160 q-3 -11 -9 -17 M960 160 q0 -13 2 -20 M960 160 q4 -9 10 -14 M912 156 q-3 -11 -9 -17 M912 156 q0 -13 2 -20 M912 156 q4 -9 10 -14 M1073 157 q-3 -11 -9 -17 M1073 157 q0 -13 2 -20 M1073 157 q4 -9 10 -14 M1321 159 q-3 -11 -9 -17 M1321 159 q0 -13 2 -20 M1321 159 q4 -9 10 -14 M1033 150 q-3 -11 -9 -17 M1033 150 q0 -13 2 -20 M1033 150 q4 -9 10 -14 M1366 152 q-3 -11 -9 -17 M1366 152 q0 -13 2 -20 M1366 152 q4 -9 10 -14 M946 158 q-3 -11 -9 -17 M946 158 q0 -13 2 -20 M946 158 q4 -9 10 -14 M843 152 q-3 -11 -9 -17 M843 152 q0 -13 2 -20 M843 152 q4 -9 10 -14 M530 160 q-3 -11 -9 -17 M530 160 q0 -13 2 -20 M530 160 q4 -9 10 -14 M480 166 q-3 -11 -9 -17 M480 166 q0 -13 2 -20 M480 166 q4 -9 10 -14 M601 150 q-3 -11 -9 -17 M601 150 q0 -13 2 -20 M601 150 q4 -9 10 -14 M153 153 q-3 -11 -9 -17 M153 153 q0 -13 2 -20 M153 153 q4 -9 10 -14 M830 153 q-3 -11 -9 -17 M830 153 q0 -13 2 -20 M830 153 q4 -9 10 -14 M605 162 q-3 -11 -9 -17 M605 162 q0 -13 2 -20 M605 162 q4 -9 10 -14 M146 150 q-3 -11 -9 -17 M146 150 q0 -13 2 -20 M146 150 q4 -9 10 -14 M1412 150 q-3 -11 -9 -17 M1412 150 q0 -13 2 -20 M1412 150 q4 -9 10 -14 M447 156 q-3 -11 -9 -17 M447 156 q0 -13 2 -20 M447 156 q4 -9 10 -14 M117 165 q-3 -11 -9 -17 M117 165 q0 -13 2 -20 M117 165 q4 -9 10 -14 M778 162 q-3 -11 -9 -17 M778 162 q0 -13 2 -20 M778 162 q4 -9 10 -14 M869 152 q-3 -11 -9 -17 M869 152 q0 -13 2 -20 M869 152 q4 -9 10 -14 M1169 156 q-3 -11 -9 -17 M1169 156 q0 -13 2 -20 M1169 156 q4 -9 10 -14" style="fill:none;stroke:var(--color-meadow-line);stroke-width:2.5;stroke-linecap:round"/>
+      <g style="fill:var(--color-meadow-flower)"><circle cx="582" cy="140.5" r="3.4"/><circle cx="586.5" cy="145" r="3.4"/><circle cx="582" cy="149.5" r="3.4"/><circle cx="577.5" cy="145" r="3.4"/></g><circle cx="582" cy="145" r="2.6" style="fill:var(--color-study)"/><g style="fill:var(--color-meadow-flower)"><circle cx="711" cy="119.5" r="3.4"/><circle cx="715.5" cy="124" r="3.4"/><circle cx="711" cy="128.5" r="3.4"/><circle cx="706.5" cy="124" r="3.4"/></g><circle cx="711" cy="124" r="2.6" style="fill:var(--color-personal)"/><g style="fill:var(--color-meadow-flower)"><circle cx="305" cy="134.5" r="3.4"/><circle cx="309.5" cy="139" r="3.4"/><circle cx="305" cy="143.5" r="3.4"/><circle cx="300.5" cy="139" r="3.4"/></g><circle cx="305" cy="139" r="2.6" style="fill:var(--color-study)"/><g style="fill:var(--color-meadow-flower)"><circle cx="52" cy="122.5" r="3.4"/><circle cx="56.5" cy="127" r="3.4"/><circle cx="52" cy="131.5" r="3.4"/><circle cx="47.5" cy="127" r="3.4"/></g><circle cx="52" cy="127" r="2.6" style="fill:var(--color-personal)"/><g style="fill:var(--color-meadow-flower)"><circle cx="393" cy="154.5" r="3.4"/><circle cx="397.5" cy="159" r="3.4"/><circle cx="393" cy="163.5" r="3.4"/><circle cx="388.5" cy="159" r="3.4"/></g><circle cx="393" cy="159" r="2.6" style="fill:var(--color-study)"/><g style="fill:var(--color-meadow-flower)"><circle cx="1072" cy="131.5" r="3.4"/><circle cx="1076.5" cy="136" r="3.4"/><circle cx="1072" cy="140.5" r="3.4"/><circle cx="1067.5" cy="136" r="3.4"/></g><circle cx="1072" cy="136" r="2.6" style="fill:var(--color-study)"/><g style="fill:var(--color-meadow-flower)"><circle cx="888" cy="143.5" r="3.4"/><circle cx="892.5" cy="148" r="3.4"/><circle cx="888" cy="152.5" r="3.4"/><circle cx="883.5" cy="148" r="3.4"/></g><circle cx="888" cy="148" r="2.6" style="fill:var(--color-study)"/><g style="fill:var(--color-meadow-flower)"><circle cx="891" cy="132.5" r="3.4"/><circle cx="895.5" cy="137" r="3.4"/><circle cx="891" cy="141.5" r="3.4"/><circle cx="886.5" cy="137" r="3.4"/></g><circle cx="891" cy="137" r="2.6" style="fill:var(--color-study)"/><g style="fill:var(--color-meadow-flower)"><circle cx="1243" cy="138.5" r="3.4"/><circle cx="1247.5" cy="143" r="3.4"/><circle cx="1243" cy="147.5" r="3.4"/><circle cx="1238.5" cy="143" r="3.4"/></g><circle cx="1243" cy="143" r="2.6" style="fill:var(--color-study)"/><g style="fill:var(--color-personal)"><circle cx="413" cy="144.5" r="3.4"/><circle cx="417.5" cy="149" r="3.4"/><circle cx="413" cy="153.5" r="3.4"/><circle cx="408.5" cy="149" r="3.4"/></g><circle cx="413" cy="149" r="2.6" style="fill:var(--color-study)"/><g style="fill:var(--color-meadow-flower)"><circle cx="1211" cy="125.5" r="3.4"/><circle cx="1215.5" cy="130" r="3.4"/><circle cx="1211" cy="134.5" r="3.4"/><circle cx="1206.5" cy="130" r="3.4"/></g><circle cx="1211" cy="130" r="2.6" style="fill:var(--color-study)"/><g style="fill:var(--color-meadow-flower)"><circle cx="466" cy="147.5" r="3.4"/><circle cx="470.5" cy="152" r="3.4"/><circle cx="466" cy="156.5" r="3.4"/><circle cx="461.5" cy="152" r="3.4"/></g><circle cx="466" cy="152" r="2.6" style="fill:var(--color-personal)"/><g style="fill:var(--color-meadow-flower)"><circle cx="1279" cy="140.5" r="3.4"/><circle cx="1283.5" cy="145" r="3.4"/><circle cx="1279" cy="149.5" r="3.4"/><circle cx="1274.5" cy="145" r="3.4"/></g><circle cx="1279" cy="145" r="2.6" style="fill:var(--color-personal)"/><g style="fill:var(--color-meadow-flower)"><circle cx="180" cy="123.5" r="3.4"/><circle cx="184.5" cy="128" r="3.4"/><circle cx="180" cy="132.5" r="3.4"/><circle cx="175.5" cy="128" r="3.4"/></g><circle cx="180" cy="128" r="2.6" style="fill:var(--color-study)"/>
+    </svg>
+  </div>
+
+  <div class="app">
+    <!-- 왼쪽 사이드바: 헤더 · 진행률 · 필터 -->
+    <aside class="sidebar">
+      <header class="app-header">
+        <h1 class="app-title"><span class="title-icon" id="title-icon"></span>오늘의 할 일</h1>
+        <time class="today" id="today"></time>
+        <button type="button" class="theme-switch" id="theme-switch" role="switch"
+                aria-checked="false" aria-label="밤 모드">
+          <span class="theme-switch-thumb" aria-hidden="true"></span>
+        </button>
+      </header>
+
+      <section class="progress" aria-labelledby="progress-title">
+        <div class="progress-head">
+          <h2 class="section-title" id="progress-title">전체 진행률</h2>
+          <p class="progress-text" id="progress-text">0 / 0 (0%)</p>
+        </div>
+        <div class="bar bar-total" role="progressbar" aria-label="전체 진행률"
+             aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div class="bar-fill" id="progress-fill" style="width: 0%"></div>
+        </div>
+
+        <ul class="category-progress"></ul>
+      </section>
+
+      <nav class="filters" aria-label="카테고리 필터">
+        <p class="nav-title" aria-hidden="true">보기</p>
+        <button type="button" class="filter-btn is-active" data-filter="all" aria-pressed="true">전체</button>
+        <!-- 카테고리 탭은 app.js가 이 버튼 앞에 그린다 -->
+        <button type="button" class="filter-edit" id="category-open">카테고리 편집</button>
+      </nav>
+    </aside>
+
+    <!-- 오른쪽 본문: 입력 · 목록 -->
+    <main class="main">
+      <div class="main-inner">
+        <!-- localStorage를 쓸 수 없을 때만 표시 -->
+        <p class="banner" id="storage-banner" role="alert" hidden>이 브라우저에서는 데이터가 저장되지 않습니다</p>
+
+        <section class="card" aria-label="할 일 추가">
+          <form class="todo-form" id="todo-form">
+            <label for="todo-input" class="visually-hidden">할 일</label>
+            <input type="text" id="todo-input" class="todo-input"
+                   maxlength="100" placeholder="할 일을 입력하세요" autocomplete="off">
+
+            <label for="todo-category" class="visually-hidden">카테고리</label>
+            <select id="todo-category" class="todo-select"></select>
+
+            <button type="submit" class="btn btn-primary">추가</button>
+          </form>
+        </section>
+
+        <section aria-label="할 일 목록">
+          <ul class="todo-list" id="todo-list"></ul>
+        </section>
+        <button type="button" class="shortcut-hint" id="help-open"><kbd>?</kbd> 단축키 보기</button>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- 단축키 도움말 (? 키 또는 아래 안내 버튼으로 열기) -->
+  <dialog class="help-dialog" id="help-dialog" aria-labelledby="help-title">
+    <div class="help-head">
+      <h2 class="help-title" id="help-title">키보드 단축키</h2>
+      <button type="button" class="btn btn-ghost" id="help-close">닫기</button>
+    </div>
+    <table class="shortcut-table">
+      <thead>
+        <tr>
+          <th scope="col">키</th>
+          <th scope="col">동작</th>
+        </tr>
+      </thead>
+      <tbody id="shortcut-rows"></tbody>
+    </table>
+  </dialog>
+
+  <!-- 카테고리 편집 (추가·이름 바꾸기·삭제, 최대 5개) -->
+  <dialog class="help-dialog category-dialog" id="category-dialog" aria-labelledby="category-title">
+    <div class="help-head">
+      <h2 class="help-title" id="category-title">카테고리 편집</h2>
+      <button type="button" class="btn btn-ghost" id="category-close">닫기</button>
+    </div>
+    <p class="category-note" id="category-note"></p>
+    <ul class="category-list" id="category-list"></ul>
+    <form class="category-add" id="category-add-form">
+      <label for="category-add-input" class="visually-hidden">새 카테고리 이름</label>
+      <input type="text" id="category-add-input" class="todo-input" maxlength="10"
+             placeholder="새 카테고리 이름" autocomplete="off">
+      <button type="submit" class="btn btn-primary" id="category-add-button">추가</button>
+    </form>
+    <p class="category-error" id="category-error" role="alert" hidden></p>
+  </dialog>
+
+  <!-- 화면 아래 안내들 -->
+  <div class="toast-stack">
+    <!-- 삭제 되돌리기 (5초) -->
+    <div class="toast toast-undo" id="undo-toast" role="status" aria-live="polite" hidden>
+      <span>삭제했습니다 ·</span>
+      <button type="button" class="toast-button" id="undo-button">되돌리기 (Ctrl+Z)</button>
+    </div>
+    <!-- 잠깐 보였다 사라지는 안내 (저장 실패 등) -->
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+  </div>
+
+  <script src="app.js" defer></script>
+</body>
+</html>

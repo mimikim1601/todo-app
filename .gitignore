@@ -1,0 +1,11 @@
+# Created: 2026-11-02 16:56
+# 운영체제·에디터가 만드는 파일은 올리지 않는다
+.DS_Store
+Thumbs.db
+desktop.ini
+._*
+.Spotlight-V100
+.Trashes
+*.swp
+.vscode/
+.idea/
