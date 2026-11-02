@@ -409,7 +409,7 @@ function createTodoItem(todo) {
   badge.dataset.category = todo.category;
   badge.style.setProperty("--cat-color", categoryColor(category));
   badge.textContent = category.name;
-  badge.prepend(makeCategoryIcon(category, 16));
+  badge.prepend(makeCategoryIcon(category, 20));
 
   const actions = document.createElement("div");
   actions.className = "todo-actions";
@@ -467,7 +467,7 @@ function makeCategoryIcon(category, size) {
 
 // 헤더 제목 옆 아이콘을 한 번 배치한다. (카테고리 아이콘은 render 때 그린다)
 function placeIcons() {
-  titleIconEl.append(makeIcon(TITLE_ICON, 48, "title"));
+  titleIconEl.append(makeIcon(TITLE_ICON, 56, "title"));
 }
 
 // 0.4초 통통 튀기 (연속으로 불러도 처음부터 다시 튄다)
@@ -514,7 +514,7 @@ function createCategoryProgressItem(category) {
   const name = document.createElement("span");
   name.className = "cat-name";
   name.textContent = category.name;
-  name.prepend(makeCategoryIcon(category, 20));
+  name.prepend(makeCategoryIcon(category, 24));
   const count = document.createElement("span");
   count.className = "cat-count";
   label.append(name, count);
@@ -553,7 +553,7 @@ function createFilterButton(category) {
   button.className = "filter-btn";
   button.dataset.filter = category.id;
   button.style.setProperty("--cat-color", categoryColor(category));
-  button.append(makeCategoryIcon(category, 16), category.name);
+  button.append(makeCategoryIcon(category, 20), category.name);
   return button;
 }
 
@@ -642,7 +642,7 @@ function renderCategoryEditor() {
 
       const remove = createButton("category-delete", "삭제", `${category.name} 카테고리 삭제`);
 
-      li.append(makeCategoryIcon(category, 28), input, count, remove);
+      li.append(makeCategoryIcon(category, 32), input, count, remove);
       return li;
     })
   );

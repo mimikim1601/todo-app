@@ -1211,7 +1211,7 @@ kbd {
   left: 0;
   right: 0;
   bottom: 0;
-  height: 170px;
+  height: 260px;
   z-index: -1;
   pointer-events: none;
   opacity: var(--meadow-opacity);
@@ -1226,7 +1226,7 @@ kbd {
 
 @media (max-width: 480px) {
   .meadow {
-    height: 120px;
+    height: 180px;
   }
 
   .category-row {
@@ -1269,7 +1269,7 @@ kbd {
 
 /* 마지막 내용이 풀숲에 가리지 않도록 */
 .app {
-  padding-bottom: 190px;
+  padding-bottom: 280px;
 }
 
 /* ---------- 움직임 줄이기 ---------- */
