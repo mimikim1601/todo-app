@@ -92,6 +92,8 @@
 
         <label for="todo-category" class="visually-hidden">카테고리</label>
         <select id="todo-category" class="todo-select"></select>
+        <label for="todo-due" class="visually-hidden">마감일 (선택)</label>
+        <input type="date" id="todo-due" class="todo-due" title="마감일 (선택)">
 
         <button type="submit" class="btn btn-primary">추가</button>
       </form>
@@ -108,7 +110,11 @@
     <section aria-label="할 일 목록">
       <ul class="todo-list" id="todo-list"></ul>
     </section>
-    <button type="button" class="shortcut-hint" id="help-open"><kbd>?</kbd> 단축키 보기</button>
+    <div class="page-links">
+      <button type="button" class="history-open" id="calendar-open">달력 보기</button>
+      <button type="button" class="history-open" id="history-open">지난 기록 보기</button>
+      <button type="button" class="shortcut-hint" id="help-open"><kbd>?</kbd> 단축키 보기</button>
+    </div>
 
   </main>
 
@@ -144,6 +150,35 @@
       <button type="submit" class="btn btn-primary" id="category-add-button">추가</button>
     </form>
     <p class="category-error" id="category-error" role="alert" hidden></p>
+  </dialog>
+
+  <!-- 지난 기록: 날짜별로 추가·완료한 할 일 (H 키 또는 아래 버튼) -->
+  <dialog class="help-dialog history-dialog" id="history-dialog" aria-labelledby="history-title">
+    <div class="help-head">
+      <h2 class="help-title" id="history-title">지난 기록</h2>
+      <button type="button" class="btn btn-ghost" id="history-close">닫기</button>
+    </div>
+    <p class="category-note">날짜별로 추가하고 완료한 할 일을 모아 보여 줘요. 삭제한 할 일은 기록에서도 빠져요.</p>
+    <div class="history-list" id="history-list"></div>
+  </dialog>
+
+  <!-- 달력: 마감일별 할 일 (C 키 또는 아래 버튼) -->
+  <dialog class="help-dialog calendar-dialog" id="calendar-dialog" aria-labelledby="calendar-title">
+    <div class="help-head">
+      <h2 class="help-title" id="calendar-title">달력</h2>
+      <button type="button" class="btn btn-ghost" id="calendar-close">닫기</button>
+    </div>
+    <div class="calendar-nav">
+      <button type="button" class="btn btn-ghost calendar-arrow" id="calendar-prev" aria-label="이전 달">‹</button>
+      <p class="calendar-month" id="calendar-month" aria-live="polite"></p>
+      <button type="button" class="btn btn-ghost calendar-arrow" id="calendar-next" aria-label="다음 달">›</button>
+      <button type="button" class="btn btn-ghost calendar-today-btn" id="calendar-today">오늘</button>
+    </div>
+    <div class="calendar-weekdays" aria-hidden="true">
+      <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
+    </div>
+    <div class="calendar-days" id="calendar-days"></div>
+    <div class="calendar-detail" id="calendar-detail" aria-live="polite"></div>
   </dialog>
 
   <!-- 화면 아래 안내들 -->

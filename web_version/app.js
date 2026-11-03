@@ -46,6 +46,8 @@ const SHORTCUTS = {
   filterAll: { keys: ["1"], label: "필터: 전체" },
   filterCategory: { keys: ["2", "3", "4", "5", "6"], label: "필터: 카테고리 (편집 화면의 순서대로)" },
   toggleTheme: { keys: ["d"], label: "낮/밤 모드 전환" },
+  openHistory: { keys: ["h"], label: "지난 기록 보기 (날짜별로 추가·완료한 할 일)" },
+  openCalendar: { keys: ["c"], label: "달력 보기 (마감일별 할 일)" },
   toggleHelp: { keys: ["?"], label: "단축키 도움말 열기/닫기" },
 };
 
@@ -71,6 +73,10 @@ let toastTimer = null;
 let undoTimer = null;
 let helpReturnFocus = null; // 도움말을 닫으면 돌아갈 요소
 let categoryReturnFocus = null; // 카테고리 편집을 닫으면 돌아갈 요소
+let historyReturnFocus = null; // 지난 기록을 닫으면 돌아갈 요소
+let calendarReturnFocus = null; // 달력을 닫으면 돌아갈 요소
+let calendarMonth = null; // 달력에 보이는 달 (그달 1일의 Date)
+let calendarSelected = null; // 달력에서 고른 날 "YYYY-MM-DD"
 let categorySignature = ""; // 카테고리 구성이 바뀌었을 때만 필터 탭·선택 상자를 다시 만든다
 
 // DOM
@@ -102,6 +108,20 @@ const categoryAddInputEl = document.getElementById("category-add-input");
 const categoryAddButtonEl = document.getElementById("category-add-button");
 const categoryNoteEl = document.getElementById("category-note");
 const categoryErrorEl = document.getElementById("category-error");
+const historyOpenEl = document.getElementById("history-open");
+const historyDialogEl = document.getElementById("history-dialog");
+const historyCloseEl = document.getElementById("history-close");
+const historyListEl = document.getElementById("history-list");
+const dueInputEl = document.getElementById("todo-due");
+const calendarOpenEl = document.getElementById("calendar-open");
+const calendarDialogEl = document.getElementById("calendar-dialog");
+const calendarCloseEl = document.getElementById("calendar-close");
+const calendarMonthEl = document.getElementById("calendar-month");
+const calendarPrevEl = document.getElementById("calendar-prev");
+const calendarNextEl = document.getElementById("calendar-next");
+const calendarTodayEl = document.getElementById("calendar-today");
+const calendarDaysEl = document.getElementById("calendar-days");
+const calendarDetailEl = document.getElementById("calendar-detail");
 
 // ---------- 저장 / 불러오기 ----------
 
@@ -165,6 +185,11 @@ function isValidFilter(value) {
   return value === "all" || isValidCategory(value);
 }
 
+// 마감일은 "YYYY-MM-DD" 문자열(날짜만, 시간대 영향 없음)
+function isValidDueDate(value) {
+  return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(new Date(`${value}T00:00`).getTime());
+}
+
 function isValidTheme(value) {
   return value === "day" || value === "night";
 }
@@ -207,6 +232,10 @@ function load() {
       category: isValidCategory(item.category) ? item.category : categories[0].id,
       completed: item.completed,
       createdAt: item.createdAt,
+      // 완료한 시각 (지난 기록용). 예전 데이터에는 없으므로 null.
+      completedAt: item.completed && typeof item.completedAt === "number" ? item.completedAt : null,
+      // 마감일 (없으면 null)
+      dueDate: isValidDueDate(item.dueDate) ? item.dueDate : null,
     }));
   }
 
@@ -225,14 +254,16 @@ function createId() {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-// 새 할 일을 목록 끝에 넣고 마지막 카테고리로 기억한다.
-function addTodo(text, category) {
+// 새 할 일을 목록 끝에 넣고 마지막 카테고리로 기억한다. dueDate는 "YYYY-MM-DD" 또는 null.
+function addTodo(text, category, dueDate = null) {
   todos.push({
     id: createId(),
     text,
     category,
     completed: false,
     createdAt: Date.now(),
+    completedAt: null,
+    dueDate,
   });
   settings.lastCategory = category;
 }
@@ -255,18 +286,21 @@ function restoreTodo() {
   return todo;
 }
 
-// 할 일의 완료 여부를 체크박스 상태(completed)로 맞춘다.
+// 할 일의 완료 여부를 체크박스 상태(completed)로 맞추고, 완료한 시각을 기록한다.
 function toggleTodo(id, completed) {
   const todo = todos.find((item) => item.id === id);
-  if (todo) todo.completed = completed;
+  if (!todo) return;
+  todo.completed = completed;
+  todo.completedAt = completed ? Date.now() : null;
 }
 
-// 할 일의 내용과 카테고리를 바꾼다.
-function updateTodo(id, text, category) {
+// 할 일의 내용·카테고리·마감일을 바꾼다.
+function updateTodo(id, text, category, dueDate) {
   const todo = todos.find((item) => item.id === id);
   if (!todo) return;
   todo.text = text;
   todo.category = category;
+  todo.dueDate = dueDate;
 }
 
 // 편집 중인 항목의 입력값을 상태에 반영하고 편집 모드를 끝낸다.
@@ -280,9 +314,10 @@ function commitEdit() {
 
   const text = li.querySelector(".todo-edit-input").value.trim().slice(0, MAX_LENGTH);
   const category = li.querySelector(".todo-edit-select").value;
+  const due = li.querySelector(".todo-edit-due").value;
   if (text === "" || !isValidCategory(category)) return;
 
-  updateTodo(id, text, category);
+  updateTodo(id, text, category, isValidDueDate(due) ? due : null);
 }
 
 function cancelEdit() {
@@ -418,7 +453,9 @@ function createTodoItem(todo) {
     createButton("btn-delete", "삭제", `${todo.text} 삭제`)
   );
 
-  li.append(checkbox, checkLabel, text, badge, actions);
+  li.append(checkbox, checkLabel, text, badge);
+  if (todo.dueDate) li.append(createDueChip(todo));
+  li.append(actions);
   return li;
 }
 
@@ -434,7 +471,13 @@ function createEditItem(todo) {
   input.value = todo.text;
   input.setAttribute("aria-label", "할 일 내용 수정");
 
-  li.append(input, createCategorySelect(todo.category));
+  const due = document.createElement("input");
+  due.type = "date";
+  due.className = "todo-edit-due";
+  due.value = todo.dueDate ?? "";
+  due.setAttribute("aria-label", "마감일 수정 (비우면 마감일 없음)");
+
+  li.append(input, createCategorySelect(todo.category), due);
   return li;
 }
 
@@ -653,6 +696,294 @@ function renderCategoryEditor() {
   categoryNoteEl.textContent = isFull
     ? `카테고리는 최대 ${MAX_CATEGORIES}개까지예요. 새로 만들려면 하나를 지워 주세요.`
     : `카테고리는 최대 ${MAX_CATEGORIES}개까지 만들 수 있어요 (${categories.length}/${MAX_CATEGORIES}).`;
+}
+
+// ---------- 마감일 ----------
+
+function todayKey() {
+  return dayKey(Date.now());
+}
+
+// "YYYY-MM-DD"를 days일 옮긴 날짜 키
+function shiftDayKey(key, days) {
+  const date = new Date(`${key}T00:00`);
+  date.setDate(date.getDate() + days);
+  return dayKey(date.getTime());
+}
+
+// "2026-11-05" → "11/5 (목)"
+function formatShortDay(key) {
+  const date = new Date(`${key}T00:00`);
+  return `${date.getMonth() + 1}/${date.getDate()} (${WEEKDAYS[date.getDay()]})`;
+}
+
+// 목록에 붙는 마감일 칩: 오늘 마감 · 내일 마감 · ~11/7 (토) · 11/1 지남
+function createDueChip(todo) {
+  const chip = document.createElement("span");
+  chip.className = "due-chip";
+  const today = todayKey();
+  const label = formatShortDay(todo.dueDate);
+  let text;
+  if (todo.completed) {
+    text = label;
+  } else if (todo.dueDate < today) {
+    chip.classList.add("is-overdue");
+    text = `${label} 지남`;
+  } else if (todo.dueDate === today) {
+    chip.classList.add("is-today");
+    text = "오늘 마감";
+  } else if (todo.dueDate === shiftDayKey(today, 1)) {
+    chip.classList.add("is-soon");
+    text = "내일 마감";
+  } else {
+    text = `~${label}`;
+  }
+  chip.textContent = text;
+  chip.title = `마감일 ${describeDay(todo.dueDate).title}`;
+  return chip;
+}
+
+// ---------- 달력 (마감일별 할 일) ----------
+
+function getTodosDueOn(key) {
+  return sortTodos(todos.filter((todo) => todo.dueDate === key));
+}
+
+function renderCalendarDays() {
+  const year = calendarMonth.getFullYear();
+  const month = calendarMonth.getMonth();
+  const today = todayKey();
+  calendarMonthEl.textContent = `${year}년 ${month + 1}월`;
+
+  const cells = [];
+  // 1일 앞의 빈칸 (일요일 시작)
+  for (let i = 0; i < new Date(year, month, 1).getDay(); i++) {
+    const blank = document.createElement("span");
+    blank.className = "calendar-blank";
+    cells.push(blank);
+  }
+  const lastDay = new Date(year, month + 1, 0).getDate();
+  for (let day = 1; day <= lastDay; day++) {
+    const key = dayKey(new Date(year, month, day).getTime());
+    const due = getTodosDueOn(key);
+    const left = due.filter((todo) => !todo.completed).length;
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "calendar-day";
+    button.dataset.day = key;
+    button.classList.toggle("is-today", key === today);
+    button.classList.toggle("is-past", key < today);
+    button.setAttribute("aria-pressed", String(key === calendarSelected));
+    button.setAttribute(
+      "aria-label",
+      `${month + 1}월 ${day}일${key === today ? " 오늘" : ""}, 마감 ${due.length}개${due.length ? ` (남은 일 ${left}개)` : ""}`
+    );
+
+    const number = document.createElement("span");
+    number.className = "calendar-day-number";
+    number.textContent = String(day);
+    button.append(number);
+
+    if (due.length > 0) {
+      const dots = document.createElement("span");
+      dots.className = "calendar-dots";
+      due.slice(0, 3).forEach((todo) => {
+        const dot = document.createElement("span");
+        dot.className = "calendar-dot";
+        dot.classList.toggle("is-done", todo.completed);
+        const category = getCategory(todo.category);
+        if (category) dot.style.setProperty("--cat-color", categoryColor(category));
+        dots.append(dot);
+      });
+      if (due.length > 3) {
+        const more = document.createElement("span");
+        more.className = "calendar-more";
+        more.textContent = `+${due.length - 3}`;
+        dots.append(more);
+      }
+      button.append(dots);
+    }
+    cells.push(button);
+  }
+  calendarDaysEl.replaceChildren(...cells);
+}
+
+function renderCalendarDetail() {
+  const { title, tag } = describeDay(calendarSelected);
+  const due = getTodosDueOn(calendarSelected);
+
+  const heading = document.createElement("h3");
+  heading.className = "history-day-title";
+  heading.textContent = `${title} 마감`;
+  if (tag) {
+    const tagEl = document.createElement("span");
+    tagEl.className = "history-tag";
+    tagEl.textContent = tag;
+    heading.append(" ", tagEl);
+  }
+
+  if (due.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "history-empty";
+    empty.textContent = "이 날 마감인 할 일이 없어요";
+    calendarDetailEl.replaceChildren(heading, empty);
+    return;
+  }
+
+  const list = document.createElement("ul");
+  list.className = "history-items";
+  list.append(...due.map((todo) => createHistoryItem(todo, true)));
+  calendarDetailEl.replaceChildren(heading, list);
+}
+
+function renderCalendar() {
+  renderCalendarDays();
+  renderCalendarDetail();
+}
+
+function moveCalendarMonth(step) {
+  calendarMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + step, 1);
+  renderCalendarDays();
+}
+
+function openCalendar() {
+  if (editingId !== null) {
+    commitEdit();
+    save();
+    render();
+  }
+  calendarReturnFocus = document.activeElement;
+  const now = new Date();
+  calendarMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  calendarSelected = todayKey();
+  renderCalendar();
+  calendarDialogEl.showModal();
+}
+
+// ---------- 지난 기록 ----------
+
+// 시각 → 그날의 "YYYY-MM-DD" (내 컴퓨터 시간대 기준)
+function dayKey(time) {
+  const date = new Date(time);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+// "2026-11-02" → { title: "11월 2일 (일)", tag: "어제" }
+function describeDay(key) {
+  const [year, month, day] = key.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const tag = key === dayKey(Date.now()) ? "오늘" : key === dayKey(yesterday.getTime()) ? "어제" : "";
+  const sameYear = year === new Date().getFullYear();
+  const title = `${sameYear ? "" : `${year}년 `}${month}월 ${day}일 (${WEEKDAYS[date.getDay()]})`;
+  return { title, tag };
+}
+
+function createHistoryItem(todo, showDone) {
+  const li = document.createElement("li");
+  li.className = "history-item";
+  const category = getCategory(todo.category);
+  if (category) {
+    const badge = document.createElement("span");
+    badge.className = "badge";
+    badge.style.setProperty("--cat-color", categoryColor(category));
+    badge.textContent = category.name;
+    badge.prepend(makeCategoryIcon(category, 18));
+    li.append(badge);
+  }
+  const text = document.createElement("span");
+  text.className = "history-item-text";
+  text.textContent = todo.text;
+  li.append(text);
+  if (showDone && todo.completed) {
+    const done = document.createElement("span");
+    done.className = "history-item-done";
+    done.textContent = "완료";
+    li.append(done);
+  }
+  return li;
+}
+
+function createHistoryGroup(title, list, showDone) {
+  const fragment = document.createDocumentFragment();
+  if (list.length === 0) return fragment;
+  const heading = document.createElement("h4");
+  heading.className = "history-group-title";
+  heading.textContent = `${title} ${list.length}개`;
+  const ul = document.createElement("ul");
+  ul.className = "history-items";
+  ul.append(...list.map((todo) => createHistoryItem(todo, showDone)));
+  fragment.append(heading, ul);
+  return fragment;
+}
+
+// 날짜별(최근 날짜부터)로 그날 완료한 일과 추가한 일을 모아 그린다.
+function renderHistory() {
+  const days = new Map();
+  const dayOf = (key) => {
+    if (!days.has(key)) days.set(key, { added: [], completed: [] });
+    return days.get(key);
+  };
+  todos.forEach((todo) => {
+    dayOf(dayKey(todo.createdAt)).added.push(todo);
+    if (todo.completed && todo.completedAt !== null) dayOf(dayKey(todo.completedAt)).completed.push(todo);
+  });
+
+  if (days.size === 0) {
+    const empty = document.createElement("p");
+    empty.className = "history-empty";
+    empty.textContent = "아직 기록이 없어요. 할 일을 추가하거나 완료하면 날짜별로 쌓여요.";
+    historyListEl.replaceChildren(empty);
+    return;
+  }
+
+  const byTime = (key) => (a, b) => a[key] - b[key];
+  const sections = [...days.keys()].sort().reverse().map((key) => {
+    const { added, completed } = days.get(key);
+    const { title, tag } = describeDay(key);
+
+    const section = document.createElement("section");
+    section.className = "history-day";
+    section.setAttribute("aria-label", `${title} 기록`);
+
+    const head = document.createElement("div");
+    head.className = "history-day-head";
+    const heading = document.createElement("h3");
+    heading.className = "history-day-title";
+    heading.textContent = title;
+    if (tag) {
+      const tagEl = document.createElement("span");
+      tagEl.className = "history-tag";
+      tagEl.textContent = tag;
+      heading.append(" ", tagEl);
+    }
+    const summary = document.createElement("span");
+    summary.className = "history-summary";
+    summary.textContent = `추가 ${added.length}개 · 완료 ${completed.length}개`;
+    head.append(heading, summary);
+
+    section.append(
+      head,
+      createHistoryGroup("완료한 일", completed.sort(byTime("completedAt")), false),
+      createHistoryGroup("추가한 일", added.sort(byTime("createdAt")), true)
+    );
+    return section;
+  });
+  historyListEl.replaceChildren(...sections);
+}
+
+function openHistory() {
+  if (editingId !== null) {
+    commitEdit();
+    save();
+    render();
+  }
+  historyReturnFocus = document.activeElement;
+  renderHistory();
+  historyDialogEl.showModal();
+  historyListEl.scrollTop = 0;
 }
 
 function showCategoryError(message) {
@@ -916,6 +1247,14 @@ const shortcutActions = {
     return category ? setFilter(category.id) : false;
   },
   toggleTheme,
+  openHistory() {
+    openHistory();
+    return true;
+  },
+  openCalendar() {
+    openCalendar();
+    return true;
+  },
   toggleHelp() {
     if (helpDialogEl.open) closeHelp();
     else openHelp();
@@ -966,8 +1305,8 @@ function handleShortcut(event) {
   // 다른 곳(수정 중 Enter/Esc 등)에서 이미 처리했거나 한글 조합 중이면 건드리지 않는다.
   if (event.defaultPrevented || event.isComposing || event.keyCode === 229) return;
 
-  // 카테고리 편집 중에는 단축키를 쓰지 않는다. (Esc는 dialog 기본 동작으로 닫힌다)
-  if (categoryDialogEl.open) return;
+  // 카테고리 편집·지난 기록이 열려 있으면 단축키를 쓰지 않는다. (Esc는 dialog 기본 동작으로 닫힌다)
+  if (categoryDialogEl.open || historyDialogEl.open || calendarDialogEl.open) return;
 
   // 도움말이 열려 있을 때는 ?로 닫기만 한다. (Esc는 dialog 기본 동작으로 닫힌다)
   if (helpDialogEl.open) {
@@ -1006,12 +1345,15 @@ formEl.addEventListener("submit", (event) => {
   }
   const category = isValidCategory(categoryEl.value) ? categoryEl.value : categories[0].id;
 
+  const dueDate = isValidDueDate(dueInputEl.value) ? dueInputEl.value : null;
+
   // 현재 필터와 다른 카테고리여도 저장한다(목록에만 안 보일 뿐).
-  addTodo(text, category);
+  addTodo(text, category, dueDate);
   save();
   render();
 
   inputEl.value = "";
+  dueInputEl.value = "";
   inputEl.focus();
 });
 
@@ -1049,6 +1391,38 @@ helpCloseEl.addEventListener("click", closeHelp);
 helpDialogEl.addEventListener("close", () => {
   if (helpReturnFocus?.isConnected) helpReturnFocus.focus();
   helpReturnFocus = null;
+});
+
+// 달력
+calendarOpenEl.addEventListener("click", openCalendar);
+calendarCloseEl.addEventListener("click", () => calendarDialogEl.close());
+calendarPrevEl.addEventListener("click", () => moveCalendarMonth(-1));
+calendarNextEl.addEventListener("click", () => moveCalendarMonth(1));
+calendarTodayEl.addEventListener("click", () => {
+  const now = new Date();
+  calendarMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  calendarSelected = todayKey();
+  renderCalendar();
+});
+// 날짜를 누르면 그날 마감인 할 일을 아래에 보여 준다
+calendarDaysEl.addEventListener("click", (event) => {
+  const button = event.target.closest(".calendar-day");
+  if (!button) return;
+  calendarSelected = button.dataset.day;
+  renderCalendar();
+  calendarDaysEl.querySelector(`[data-day="${calendarSelected}"]`)?.focus();
+});
+calendarDialogEl.addEventListener("close", () => {
+  if (calendarReturnFocus?.isConnected) calendarReturnFocus.focus();
+  calendarReturnFocus = null;
+});
+
+// 지난 기록
+historyOpenEl.addEventListener("click", openHistory);
+historyCloseEl.addEventListener("click", () => historyDialogEl.close());
+historyDialogEl.addEventListener("close", () => {
+  if (historyReturnFocus?.isConnected) historyReturnFocus.focus();
+  historyReturnFocus = null;
 });
 
 // 카테고리 편집

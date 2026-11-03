@@ -1426,6 +1426,345 @@ kbd {
   }
 }
 
+/* ---------- 지난 기록 ---------- */
+
+.page-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-top: 8px;
+}
+
+.page-links .shortcut-hint {
+  margin-top: 0;
+}
+
+.history-open {
+  padding: 6px 16px;
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  color: var(--color-text);
+  font-family: var(--font-round);
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.history-open:hover {
+  background: var(--color-surface-soft);
+  transform: scale(1.04);
+}
+
+.history-open:focus-visible {
+  outline: 3px solid var(--color-accent-strong);
+  outline-offset: 2px;
+}
+
+.history-dialog {
+  width: min(620px, calc(100% - 32px));
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.history-day {
+  padding: 14px 16px;
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.history-day-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+
+.history-day-title {
+  margin: 0;
+  font-family: var(--font-round);
+  font-size: 1.1rem;
+  font-weight: 400;
+}
+
+.history-tag {
+  display: inline-block;
+  padding: 0 10px;
+  background: var(--color-all);
+  border-radius: var(--radius-pill);
+  color: var(--color-text-on-category);
+  font-size: 0.8rem;
+  vertical-align: middle;
+}
+
+.history-summary {
+  color: var(--color-text-muted);
+  font-family: var(--font-round);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.history-group-title {
+  margin: 12px 0 6px;
+  color: var(--color-text-muted);
+  font-family: var(--font-round);
+  font-size: 0.9rem;
+  font-weight: 400;
+}
+
+.history-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-content);
+}
+
+.history-item .badge {
+  flex: 0 0 auto;
+  margin-left: 0; /* 모바일 할 일 배지의 들여쓰기를 따르지 않는다 */
+  font-size: 0.78rem;
+}
+
+.history-item-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.history-item-done {
+  flex: 0 0 auto;
+  margin-left: auto;
+  color: var(--color-text-muted);
+  font-family: var(--font-round);
+  font-size: 0.8rem;
+}
+
+.history-empty {
+  margin: 8px 0;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+/* ---------- 마감일 · 달력 ---------- */
+
+.todo-due,
+.todo-edit-due {
+  flex: 0 0 auto;
+  min-width: 0;
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-family: var(--font-content);
+  cursor: pointer;
+}
+
+.todo-due {
+  height: 48px;
+  padding: 0 12px;
+}
+
+.todo-edit-due {
+  height: 40px;
+  padding: 0 10px;
+}
+
+.todo-due:focus,
+.todo-edit-due:focus,
+.calendar-day:focus-visible {
+  outline: 3px solid var(--color-accent-strong);
+  outline-offset: 2px;
+}
+
+/* 목록의 마감일 칩 */
+.due-chip {
+  flex: 0 0 auto;
+  padding: 1px 10px;
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  color: var(--color-text-muted);
+  font-family: var(--font-round);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.due-chip.is-soon {
+  border-color: var(--color-accent);
+  color: var(--color-text);
+}
+
+.due-chip.is-today {
+  border-color: var(--color-accent-strong);
+  color: var(--color-text);
+}
+
+.due-chip.is-overdue {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+/* 달력 */
+.calendar-dialog {
+  width: min(560px, calc(100% - 32px));
+}
+
+.calendar-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.calendar-month {
+  flex: 1;
+  margin: 0;
+  text-align: center;
+  font-family: var(--font-round);
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.calendar-arrow {
+  padding: 0 12px;
+  font-size: 1.5rem;
+  line-height: 1.3;
+}
+
+.calendar-weekdays,
+.calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.calendar-weekdays {
+  margin-bottom: 4px;
+  color: var(--color-text-muted);
+  font-family: var(--font-round);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.calendar-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-height: 58px;
+  padding: 6px 2px;
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: 12px;
+  color: var(--color-text);
+  font-family: var(--font-round);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.calendar-day:hover {
+  background: var(--color-surface-soft);
+}
+
+.calendar-day.is-past {
+  color: var(--color-text-muted);
+}
+
+.calendar-day.is-today {
+  border-color: var(--color-accent-strong);
+}
+
+.calendar-day[aria-pressed="true"] {
+  background: var(--color-all);
+  border-color: var(--color-all);
+  color: var(--color-text-on-category);
+}
+
+.calendar-dots {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 3px;
+}
+
+.calendar-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--cat-color, var(--color-progress-fill));
+  box-shadow: inset 0 0 0 1.5px var(--color-progress-edge);
+}
+
+/* 완료한 할 일은 속이 빈 동그라미 */
+.calendar-dot.is-done {
+  background: transparent;
+  box-shadow: inset 0 0 0 2px var(--cat-color, var(--color-progress-fill));
+}
+
+.calendar-more {
+  font-size: 0.7rem;
+}
+
+.calendar-detail {
+  margin-top: 14px;
+  padding: 14px 16px;
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.calendar-detail .history-items {
+  margin-top: 10px;
+}
+
+@media (max-width: 480px) {
+  /* 입력 영역: 1줄 할 일 · 2줄 카테고리 + 마감일(날짜가 잘리지 않게 넓게) · 3줄 추가 버튼 */
+  .todo-form .todo-select {
+    flex: 2 1 0;
+  }
+
+  .todo-form .todo-due {
+    flex: 3 1 0;
+    height: 44px;
+    padding: 0 8px;
+  }
+
+  .todo-form .btn-primary {
+    flex: 1 0 100%;
+  }
+
+  .todo-edit-due {
+    flex: 1 1 0;
+  }
+
+  .calendar-day {
+    min-height: 46px;
+    padding: 4px 1px;
+  }
+
+  .calendar-dot {
+    width: 6px;
+    height: 6px;
+  }
+}
+
 /* ---------- 움직임 줄이기 ---------- */
 
 @media (prefers-reduced-motion: reduce) {
@@ -1440,7 +1779,8 @@ kbd {
   .btn:active,
   .filter-btn:hover,
   .theme-switch:hover,
-  .toast-button:hover {
+  .toast-button:hover,
+  .history-open:hover {
     transform: none;
   }
 }
